@@ -1,0 +1,7 @@
+{
+  "name": "Java Coding Platform",
+  "description": "A simple, clean and functional Java learning IDE inspired by VS Code, built with HTML, CSS, and Vanilla JavaScript.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

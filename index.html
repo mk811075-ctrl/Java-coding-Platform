@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Java Coding Platform</title>
+  <meta name="description" content="A simple, clean and functional Java learning IDE inspired by VS Code, built with HTML, CSS, and Vanilla JavaScript.">
+  <meta property="og:title" content="Java Coding Platform">
+  <meta property="og:description" content="Learn Java concepts, explore project files, write code, and practice Java programs in a clean VS Code-inspired browser IDE.">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div id="app-root">
+
+    <!-- ========================================================= -->
+    <!-- 1. TOP NAVIGATION BAR                                     -->
+    <!-- ========================================================= -->
+    <header class="topbar">
+      <!-- Left: Logo & Project Name -->
+      <div class="topbar-left">
+        <span class="brand-logo">☕</span>
+        <span class="brand-title">Java Coding Platform</span>
+        <span class="topbar-badge">JDK 21</span>
+      </div>
+
+      <!-- Middle: Current Project/File Name -->
+      <div class="topbar-center">
+        <span class="project-name" id="topbar-project-name" onclick="window.JavaProjectManager.openModal()" style="cursor: pointer;" title="Manage & switch projects">java-programming</span>
+        <span>&bull;</span>
+        <span id="topbar-active-file">Main.java</span>
+      </div>
+
+      <!-- Right: Action Controls -->
+      <div class="topbar-right">
+        <!-- Quick Run Button -->
+        <button id="btn-run-code-top" class="topbar-btn primary" title="Run Current Java File (F5)">
+          <span>▶</span>
+          <span>Run (F5)</span>
+        </button>
+
+        <!-- Stop Button -->
+        <button id="btn-stop-execution" class="topbar-btn" style="display: none; background: #b91c1c; color: #fff; border-color: #ef4444;" title="Stop Running Program">
+          <span>⏹</span>
+          <span>Stop</span>
+        </button>
+
+        <!-- Projects Switcher -->
+        <button id="btn-open-project-manager" class="topbar-btn" title="Manage Projects">
+          📂 Projects
+        </button>
+
+        <!-- Autosave Toggle -->
+        <button id="btn-toggle-autosave" class="topbar-btn" title="Toggle Autosave (auto-saves on typing)">
+          Autosave: OFF
+        </button>
+
+        <!-- Overall Progress Pill -->
+        <span class="progress-pill" title="Overall Java Learning Progress">
+          Progress: <strong id="topbar-overall-progress">15%</strong>
+        </span>
+
+        <!-- Theme Toggle -->
+        <button id="btn-toggle-theme" class="topbar-btn" title="Toggle Light/Dark Theme">
+          ☀ Light
+        </button>
+
+        <!-- Help Info -->
+        <button id="btn-top-help" class="topbar-btn" title="Platform Help & Instructions">
+          Help
+        </button>
+
+        <!-- Student Profile -->
+        <button id="btn-top-profile" class="topbar-btn" title="Student Profile & Settings">
+          👤 Profile
+        </button>
+      </div>
+    </header>
+
+    <!-- ========================================================= -->
+    <!-- 2. MAIN HORIZONTAL CONTAINER                              -->
+    <!-- ========================================================= -->
+    <div class="main-workspace">
+
+      <!-- A. LEFT ACTIVITY BAR (VS Code 48px Thin Strip) -->
+      <aside class="activity-bar">
+        <button class="activity-bar-btn active" data-tab="explorer" title="Explorer (Project Files)">
+          📁
+        </button>
+        <button class="activity-bar-btn" data-tab="learn" title="Learn Java (Topics & Concepts)">
+          📖
+        </button>
+        <button class="activity-bar-btn" data-tab="practice" title="Java Practice (Programs)">
+          ⚡
+        </button>
+        <button class="activity-bar-btn" data-tab="search" title="Search Files & Topics (Ctrl+F)">
+          🔍
+        </button>
+        <button class="activity-bar-btn" data-tab="progress" title="Learning Progress">
+          📊
+        </button>
+        <button class="activity-bar-btn" data-tab="bookmarks" title="Saved Bookmarks">
+          ★
+        </button>
+      </aside>
+
+      <!-- B. COLLAPSIBLE LEFT SIDEBAR PANEL -->
+      <aside id="left-sidebar-panel" class="left-sidebar">
+
+        <!-- 1. EXPLORER VIEW -->
+        <div class="sidebar-view active" data-view="explorer">
+          <div class="sidebar-header">
+            <span>Explorer</span>
+            <button id="btn-toggle-sidebar-panel" class="terminal-control-btn" title="Collapse Sidebar">&laquo;</button>
+          </div>
+          <div id="explorer-tree-content" class="explorer-tree">
+            <!-- Dynamically populated from JAVA_PROJECT_DATA.files -->
+          </div>
+        </div>
+
+        <!-- 2. LEARN JAVA VIEW -->
+        <div class="sidebar-view" data-view="learn">
+          <div class="sidebar-header">
+            <span>Learn Java</span>
+            <span class="category-count">10 Categories</span>
+          </div>
+          <div id="learning-topics-container" class="topics-accordion-list">
+            <!-- Dynamically populated from JAVA_PROJECT_DATA.topics -->
+          </div>
+        </div>
+
+        <!-- 3. PRACTICE VIEW -->
+        <div class="sidebar-view" data-view="practice">
+          <div class="sidebar-header">
+            <span>Java Practice</span>
+            <span class="category-count">18 Programs</span>
+          </div>
+          <div id="practice-list-container" class="practice-accordion-list">
+            <!-- Dynamically populated from JAVA_PROJECT_DATA.practicePrograms -->
+          </div>
+        </div>
+
+        <!-- 4. SEARCH VIEW -->
+        <div class="sidebar-view" data-view="search">
+          <div class="sidebar-header" style="display: flex; align-items: center; justify-content: space-between;">
+            <span>Search</span>
+            <div style="display: flex; gap: 4px;">
+              <button id="btn-search-case-match" class="terminal-control-btn" title="Match Case (Aa)">Aa</button>
+              <button id="btn-search-word-match" class="terminal-control-btn" title="Match Whole Word (\\b)">\\b</button>
+            </div>
+          </div>
+          <div class="search-input-box">
+            <input type="text" id="global-search-input" class="search-field" placeholder="Search in project files..." autofocus>
+            <div style="display: flex; gap: 4px; margin-top: 6px;">
+              <input type="text" id="global-replace-input" class="search-field" placeholder="Replace with...">
+              <button id="btn-global-replace-all" class="search-action-btn" title="Replace across all project files">Replace</button>
+            </div>
+          </div>
+          <div id="search-results-list" class="search-results-container">
+            <div class="search-empty">Type to search files, classes, methods in your Java project...</div>
+          </div>
+        </div>
+
+        <!-- 5. PROGRESS VIEW -->
+        <div class="sidebar-view" data-view="progress">
+          <div class="sidebar-header">
+            <span>Learning Progress</span>
+          </div>
+          <div class="progress-container">
+            <div class="progress-overview-card">
+              <div class="progress-stat-row">
+                <span>Topics Completed:</span>
+                <span class="stat-value"><span id="progress-completed-topics-count">0</span> / <span id="progress-total-topics-count">0</span></span>
+              </div>
+              <div class="progress-stat-row">
+                <span>Programs Practiced:</span>
+                <span class="stat-value"><span id="progress-practiced-programs-count">0</span> / <span id="progress-total-programs-count">0</span></span>
+              </div>
+            </div>
+
+            <div style="font-weight: 600; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; color: var(--text-muted);">
+              Category Mastery
+            </div>
+            <div id="category-progress-bars" class="category-bars-section">
+              <!-- Dynamically populated category progress bars -->
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. BOOKMARKS VIEW -->
+        <div class="sidebar-view" data-view="bookmarks">
+          <div class="sidebar-header">
+            <span>Bookmarks</span>
+          </div>
+          <div id="bookmarks-list-container" class="bookmarks-container">
+            <!-- Dynamically populated bookmarks -->
+          </div>
+        </div>
+
+      </aside>
+
+      <!-- C. MAIN WORKAREA (Welcome View OR Code Editor + Bottom Panel) -->
+      <main class="main-workarea">
+
+        <!-- WELCOME DASHBOARD SCREEN -->
+        <div id="welcome-dashboard-view" class="welcome-screen">
+          <div class="welcome-content-card">
+            <div class="welcome-logo">☕</div>
+            <h1 class="welcome-title">Java Coding Platform</h1>
+            <p class="welcome-subtitle">Learn Java concepts and algorithms by writing real Java code in an editor environment.</p>
+
+            <div class="welcome-actions-row">
+              <button id="welcome-btn-start-learn" class="btn-welcome-cta">
+                📖 Start Learning
+              </button>
+              <button id="welcome-btn-open-practice" class="btn-welcome-cta">
+                ⚡ Open Practice
+              </button>
+              <button id="welcome-btn-create-own" class="btn-welcome-cta" style="background-color: var(--accent-blue); color: #ffffff;">
+                📄 Create My Own Java File
+              </button>
+              <button id="welcome-btn-open-editor" class="btn-welcome-cta" style="background-color: var(--accent-java); color: #111111;">
+                💻 Open Workspace Editor
+              </button>
+            </div>
+
+            <div class="welcome-sections-grid">
+              <div class="welcome-box">
+                <div class="welcome-box-title">
+                  <span>🚀</span> Continue Learning
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+                  Explore Java Object-Oriented Programming (OOP), Collections, and DSA.
+                </p>
+                <div style="font-size: 11px; color: var(--accent-green);">
+                  Basics Progress: Active
+                </div>
+              </div>
+
+              <div class="welcome-box">
+                <div class="welcome-box-title">
+                  <span>📂</span> Recent Files
+                </div>
+                <span class="recent-file-link" data-file="Main.java">Main.java</span>
+                <span class="recent-file-link" data-file="Inheritance.java">Inheritance.java</span>
+                <span class="recent-file-link" data-file="ArrayList.java">ArrayList.java</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN CODE EDITOR AREA -->
+        <div id="main-editor-area" style="display: none; flex: 1; flex-direction: column; overflow: hidden;">
+          
+          <!-- Editor Tabs Bar -->
+          <div class="editor-tabs-bar">
+            <div id="editor-tabs-list" class="tabs-scrollable-list">
+              <!-- Dynamically rendered tabs: [Main.java] [Variables.java] etc. -->
+            </div>
+
+            <div class="editor-actions-strip">
+              <button id="btn-editor-save" class="editor-action-btn" title="Save Active File (Ctrl+S)">💾 Save</button>
+              <button id="btn-editor-copy" class="editor-action-btn" title="Copy Code">Copy</button>
+              <button id="btn-editor-select-all" class="editor-action-btn" title="Select All">Select All</button>
+              <button id="btn-editor-search-toggle" class="editor-action-btn" title="Find / Replace in code">Find</button>
+              <button id="btn-editor-reset" class="editor-action-btn" title="Reset file to default">Reset</button>
+              <button id="btn-editor-clear" class="editor-action-btn" title="Clear editor">Clear</button>
+              <button id="btn-run-code-editor" class="editor-action-btn run" title="Run Current Java Code (F5)">▶ Run</button>
+            </div>
+          </div>
+
+          <!-- Breadcrumbs Bar -->
+          <div class="editor-breadcrumbs">
+            <span>JAVA LEARNING</span>
+            <span>&gt;</span>
+            <span>src</span>
+            <span>&gt;</span>
+            <span id="current-filename-display" class="breadcrumb-active">Main.java</span>
+          </div>
+
+          <!-- Search & Replace Inside Code -->
+          <div id="editor-search-bar" class="editor-search-container">
+            <input type="text" id="editor-search-input" class="search-field-small" placeholder="Find in code...">
+            <input type="text" id="editor-replace-input" class="search-field-small" placeholder="Replace with...">
+            <button id="btn-find-next" class="search-action-btn">Next</button>
+            <button id="btn-replace-one" class="search-action-btn">Replace</button>
+            <button id="btn-replace-all" class="search-action-btn">Replace All</button>
+            <button id="btn-close-search" class="search-action-btn">&times;</button>
+          </div>
+
+          <!-- Code Editor Viewport (Line Numbers + Textarea) -->
+          <div class="code-editor-viewport">
+            <div id="editor-line-numbers" class="editor-gutter">
+              <div>1</div>
+            </div>
+            <textarea id="code-editor-textarea" class="code-textarea" spellcheck="false" placeholder="// Write Java code here..."></textarea>
+          </div>
+
+          <!-- Bottom Panel (Terminal / Output / Problems / Input) -->
+          <div id="bottom-terminal-panel" class="bottom-panel">
+            <div class="bottom-panel-header">
+              <div class="bottom-tabs-group">
+                <button class="bottom-panel-tab active" data-tab="terminal">Terminal</button>
+                <button class="bottom-panel-tab" data-tab="output">Output</button>
+                <button class="bottom-panel-tab" data-tab="problems">Problems</button>
+                <button class="bottom-panel-tab" data-tab="input">Input</button>
+              </div>
+
+              <div class="bottom-controls-group">
+                <button id="btn-clear-terminal" class="terminal-control-btn" title="Clear Terminal Logs">⊘ Clear</button>
+                <button id="btn-maximize-terminal" class="terminal-control-btn" title="Toggle Size">🗖</button>
+                <button id="btn-close-terminal" class="terminal-control-btn" title="Close Panel">&times;</button>
+              </div>
+            </div>
+
+            <!-- Tab View 1: Terminal -->
+            <div id="terminal-tab-view" class="terminal-tab-view active" data-view="terminal">
+              <div id="terminal-logs-content">
+                <div class="term-line term-prompt">$ Java Coding Platform Terminal [OpenJDK 21 Environment]</div>
+                <div class="term-line term-dim">Workspace loaded: /workspace/JAVA_LEARNING/src</div>
+                <div class="term-line term-info">Press 'Run (F5)' to compile and execute current file.</div>
+              </div>
+            </div>
+
+            <!-- Tab View 2: Output -->
+            <div id="output-tab-view" class="terminal-tab-view" data-view="output">
+              <div id="output-console-content">
+                <div class="output-disclaimer">
+                  <span class="disc-badge">Frontend Simulator</span>
+                  <span>Java execution requires backend integration. Showing simulated output:</span>
+                </div>
+                <pre class="output-text">Hello, Java!
+Welcome to Java Coding Platform.
+Program finished.</pre>
+              </div>
+            </div>
+
+            <!-- Tab View 3: Problems -->
+            <div id="problems-tab-view" class="terminal-tab-view" data-view="problems">
+              <div id="problems-console-content">
+                <div class="problems-empty">✔ No problems detected in the current Java file.</div>
+              </div>
+            </div>
+
+            <!-- Tab View 4: Input -->
+            <div id="input-tab-view" class="terminal-tab-view" data-view="input">
+              <div class="input-view-container">
+                <div class="input-instructions">
+                  Provide standard input (passed to <code>java.util.Scanner(System.in)</code> during program execution):
+                </div>
+                <textarea id="terminal-custom-input" class="input-textarea" placeholder="Type custom input values here (e.g. numbers, strings on separate lines)..."></textarea>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Bottom Status Bar -->
+          <footer class="editor-status-bar">
+            <div class="status-left">
+              <span>☕ Java SE 21</span>
+              <span>&bull;</span>
+              <span id="editor-cursor-pos">Ln 1, Col 1</span>
+              <span>&bull;</span>
+              <span>Spaces: 4</span>
+              <span>&bull;</span>
+              <span id="editor-save-status" class="status-save-pill saved">Saved</span>
+            </div>
+            <div class="status-right">
+              <span id="editor-project-status" style="cursor: pointer;" onclick="window.JavaProjectManager.openModal()" title="Active Workspace Project">📁 java-programming</span>
+              <span>&bull;</span>
+              <span>UTF-8</span>
+              <span>&bull;</span>
+              <span>Java</span>
+            </div>
+          </footer>
+
+        </div>
+
+      </main>
+
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- 3. MODALS (Topic Details, Practice Details, Help, Profile) -->
+    <!-- ========================================================= -->
+
+    <!-- Modal 1: Topic Details (with "Open Example in Editor") -->
+    <div id="topic-details-modal" class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div>
+            <span id="topic-modal-category" class="topbar-badge">Category</span>
+            <span id="topic-modal-title" class="modal-title" style="margin-left: 8px;">Topic Title</span>
+          </div>
+          <button id="btn-close-topic-modal" class="modal-close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div>
+            <div class="modal-section-title">Explanation</div>
+            <p id="topic-modal-explanation" style="line-height: 1.5; font-size: 13px;"></p>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Syntax</div>
+            <pre id="topic-modal-syntax" class="modal-code-block"></pre>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Java Example Code</div>
+            <pre id="topic-modal-example" class="modal-code-block"></pre>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Expected Output</div>
+            <pre id="topic-modal-output" class="modal-code-block" style="color: var(--accent-green);"></pre>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Important Points</div>
+            <ul id="topic-modal-points" class="modal-points-list"></ul>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-topic-bookmark" class="modal-action-btn">☆ Bookmark Topic</button>
+          <button id="btn-topic-complete" class="modal-action-btn">Mark as Completed</button>
+          <!-- Core Connection: Open Example in Editor -->
+          <button id="btn-topic-open-editor" class="modal-action-btn primary">
+            ⚡ Open Example in Editor
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 2: Practice Challenge Details (with "Open in Editor") -->
+    <div id="practice-details-modal" class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div>
+            <span id="practice-modal-category" class="topbar-badge">Practice</span>
+            <span id="practice-modal-title" class="modal-title" style="margin-left: 8px;">Practice Title</span>
+          </div>
+          <button id="btn-close-practice-modal" class="modal-close-btn">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div>
+            <div class="modal-section-title">Problem Statement</div>
+            <p id="practice-modal-problem" style="line-height: 1.5; font-size: 13px;"></p>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Example</div>
+            <pre id="practice-modal-example" class="modal-code-block"></pre>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Helpful Hint</div>
+            <div id="practice-modal-hint" style="padding: 8px; background: rgba(229, 147, 37, 0.1); border-left: 3px solid var(--accent-java); font-size: 12px;"></div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button id="btn-practice-bookmark" class="modal-action-btn">☆ Bookmark Problem</button>
+          <!-- Core Connection: Open Practice in Editor -->
+          <button id="btn-practice-open-editor" class="modal-action-btn primary">
+            ⚡ Open in Editor
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 3: Help & Architecture Info -->
+    <div id="help-info-modal" class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title">☕ Java Coding Platform - Help & Guide</span>
+          <button id="btn-close-help-modal" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <p><strong>About the Platform:</strong><br>
+          A pure educational Java learning IDE designed directly in HTML, CSS, and Vanilla JavaScript, inspired by the familiar structure of VS Code.</p>
+
+          <div>
+            <div class="modal-section-title">Keyboard Shortcuts</div>
+            <ul class="modal-points-list">
+              <li><strong>F5</strong>: Compile & Run current Java code</li>
+              <li><strong>Tab</strong>: Indent code by 4 spaces</li>
+              <li><strong>Enter</strong>: Smart auto-indentation matching block level</li>
+              <li><strong>Ctrl + B</strong>: Toggle left sidebar panel</li>
+              <li><strong>Ctrl + F</strong>: Open Search and Replace toolbar</li>
+            </ul>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Execution Note</div>
+            <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+              Because this application runs entirely client-side using Vanilla JavaScript without a remote server or heavy WebAssembly JVM, execution output is accurately simulated based on standard Java library behavior. Full compilation requires native JDK backend integration.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button onclick="document.getElementById('help-info-modal').classList.remove('open')" class="modal-action-btn primary">Got It</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal 4: Student Profile -->
+    <div id="student-profile-modal" class="modal-backdrop">
+      <div class="modal-box">
+        <div class="modal-header">
+          <span class="modal-title">👤 Student Profile</span>
+          <button id="btn-close-profile-modal" class="modal-close-btn">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div style="display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border-subtle);">
+            <div style="font-size: 36px;">🎓</div>
+            <div>
+              <div style="font-weight: bold; font-size: 14px; color: var(--text-bright);">Java Student</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Self-Paced Learner &bull; Local Storage Session</div>
+            </div>
+          </div>
+
+          <div>
+            <div class="modal-section-title">Data Storage</div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px;">
+              Your open tabs, completed topics, practiced exercises, and bookmarks are automatically saved to your browser's localStorage.
+            </p>
+            <button id="btn-reset-user-progress" class="modal-action-btn" style="color: var(--accent-red); border-color: var(--accent-red);">
+              Reset All Progress & Storage
+            </button>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button onclick="document.getElementById('student-profile-modal').classList.remove('open')" class="modal-action-btn primary">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div id="app-toast-notification">Notification</div>
+
+  </div>
+
+  <!-- Vanilla Scripts in Order -->
+  <script src="/data/java-content.js"></script>
+  <script src="/js/storage.js"></script>
+  <script src="/js/file-manager.js"></script>
+  <script src="/js/api.js"></script>
+  <script src="/js/terminal.js"></script>
+  <script src="/js/runner.js"></script>
+  <script src="/js/project-manager.js"></script>
+  <script src="/js/editor.js"></script>
+  <script src="/js/explorer.js"></script>
+  <script src="/js/learning.js"></script>
+  <script src="/js/practice.js"></script>
+  <script src="/js/progress.js"></script>
+  <script src="/js/search.js"></script>
+  <script src="/js/app.js"></script>
+  <script>
+    // Initialize platform when DOM is ready
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (window.JavaApp) {
+        await window.JavaApp.init();
+      }
+    });
+  </script>
+</body>
+</html>
